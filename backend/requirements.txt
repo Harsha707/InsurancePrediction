@@ -1,0 +1,6 @@
+# backend/requirements.txt
+fastapi
+uvicorn
+pydantic
+pickle-mixin # Ensure this aligns with your pickle package
+scikit-learn
