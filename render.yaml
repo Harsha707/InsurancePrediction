@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: backend-service
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: PORT
+        value: 8000
+    plan: free # Or replace with a suitable plan based on your needs
+    source:
+      type: github
+      repo: your-username/backend-repo-name
+      branch: main # Or specify the branch to deploy
+
+  - type: web
+    name: frontend-service
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
+    plan: free # Or replace with a suitable plan based on your needs
+    source:
+      type: github
+      repo: your-username/frontend-repo-name
+      branch: main # Or specify the branch to deploy
+    dependencies:
+      - backend-service
