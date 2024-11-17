@@ -13,8 +13,9 @@ function App() {
   const [isSmoker, setIsSmoker] = useState("");
   const [region, setRegion] = useState("");
   const [charges, setCharges] = useState(null);
+  const [loading, setLoading] = useState(false); // Loading state
+  const [initialRequest, setInitialRequest] = useState(true); // Track initial request
 
-  // Reset charges when any input changes and handle type conversion for numbers
   const handleInputChange =
     (setter, isNumber = false) =>
     (e) => {
@@ -23,9 +24,7 @@ function App() {
       setCharges(null);
     };
 
-  // Function to handle form submission
   const handleSubmit = async () => {
-    // Validate required fields and handle 0 children
     if (!age || !gender || !bmi || children === "" || !isSmoker || !region) {
       alert("Please fill in all the details before calculating the charges.");
       return;
@@ -40,8 +39,10 @@ function App() {
       region,
     };
 
+    setLoading(true);
+
     try {
-      const apiUrl = `${process.env.API_BASE_URL}/insurance_prediction`;
+      const apiUrl = `${process.env.REACT_APP_API_BASE_URL}/insurance_prediction`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -52,15 +53,21 @@ function App() {
 
       const data = await response.json();
       setCharges(data.prediction.toFixed(2));
+      setInitialRequest(false); // Mark initial request as complete
     } catch (error) {
       console.error("Error fetching charges:", error);
       setCharges("Error calculating charges");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className='App'>
-      <h2 className='title' style={{ fontSize: 30 }}>
+      <h2
+        className='title'
+        style={{ fontSize: 30, fontFamily: "Arial, sans-serif", color: "#333" }}
+      >
         Medical Insurance Cost Prediction
       </h2>
 
@@ -71,6 +78,7 @@ function App() {
         value={age}
         onChange={handleInputChange(setAge, true)}
         placeholder='30'
+        className='input-field'
       />
 
       {/* Gender Selection */}
@@ -79,6 +87,7 @@ function App() {
         id='gender'
         value={gender}
         onChange={handleInputChange(setGender)}
+        className='dropdown'
       >
         <option value=''>--Please choose an option--</option>
         <option value='male'>Male</option>
@@ -92,6 +101,7 @@ function App() {
         value={bmi}
         onChange={handleInputChange(setBmi, true)}
         placeholder='27.99'
+        className='input-field'
       />
 
       {/* Number of Children Selection */}
@@ -100,6 +110,7 @@ function App() {
         id='children'
         value={children}
         onChange={handleInputChange(setChildren, true)}
+        className='dropdown'
       >
         <option value=''>--Please choose an option--</option>
         {childrenOptions.map((num) => (
@@ -115,6 +126,7 @@ function App() {
         id='smoker'
         value={isSmoker}
         onChange={handleInputChange(setIsSmoker)}
+        className='dropdown'
       >
         <option value=''>--Please choose an option--</option>
         {smokerOptions.map((option) => (
@@ -130,6 +142,7 @@ function App() {
         id='region'
         value={region}
         onChange={handleInputChange(setRegion)}
+        className='dropdown'
       >
         <option value=''>--Please choose an option--</option>
         {regionOptions.map((reg) => (
@@ -139,27 +152,49 @@ function App() {
         ))}
       </select>
 
-      {/* Submit Button with Styling */}
+      {/* Submit Button */}
       <button
         onClick={handleSubmit}
+        disabled={loading}
         style={{
           marginTop: "20px",
           padding: "10px 20px",
           fontSize: "16px",
           color: "#fff",
-          backgroundColor: "#4CAF50",
+          backgroundColor: loading ? "#ccc" : "#4CAF50",
           border: "none",
           borderRadius: "5px",
-          cursor: "pointer",
+          cursor: loading ? "not-allowed" : "pointer",
         }}
       >
-        Calculate Insurance Cost
+        {loading ? "Calculating..." : "Calculate Insurance Cost"}
       </button>
 
+      {/* Loading Message */}
+      {loading && initialRequest && (
+        <div
+          style={{
+            marginTop: "20px",
+            fontSize: "14px",
+            color: "#555",
+            fontStyle: "italic",
+          }}
+        >
+          <p>
+            Hang tight! This might take a moment as the system initializes the
+            model and resources for the first request. Subsequent calculations
+            will be much faster.
+          </p>
+        </div>
+      )}
+
       {/* Display Charges */}
-      {charges !== null && (
+      {charges !== null && !loading && (
         <div style={{ marginTop: "20px" }}>
-          <h3>Predicted Charges: ${charges}</h3>
+          <h3 style={{ color: "#333", fontFamily: "Arial, sans-serif" }}>
+            Predicted Charges:{" "}
+            <span style={{ color: "#4CAF50" }}>${charges}</span>
+          </h3>
         </div>
       )}
     </div>
